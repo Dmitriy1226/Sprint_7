@@ -1,5 +1,6 @@
 package ru.yandex.praktikum.scooter;
 
+import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import org.junit.Test;
 import ru.yandex.praktikum.scooter.client.OrderClient;
@@ -13,6 +14,7 @@ public class OrdersListTest extends BaseTest {
 
     @Test
     @DisplayName("В ответе на запрос списка заказов приходит непустой список")
+    @Description("Проверяем, что ручка списка заказов /api/v1/orders возвращает непустой массив orders и корректный статус-код")
     public void ordersListShouldBeReturned() {
         orderClient.getOrders()
                 .statusCode(200)

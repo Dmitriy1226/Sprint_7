@@ -22,7 +22,7 @@ public class CourierCreateTest extends BaseTest {
     // Вспомогательный метод: создаёт курьера с рандомными данными
     private Courier getRandomCourier() {
         return new Courier(
-                faker.internet().username(),
+                faker.name().username(),          // было faker.internet().username()
                 faker.internet().password(),
                 faker.name().firstName()
         );
@@ -108,7 +108,7 @@ public class CourierCreateTest extends BaseTest {
     @Description("Создание курьера без пароля должно возвращать ошибку 400")
     public void cannotCreateCourierWithoutPassword() {
         Courier courier = new Courier(
-                faker.internet().username(),
+                faker.name().username(),          // было faker.internet().username()
                 null,
                 faker.name().firstName()
         );

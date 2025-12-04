@@ -1,5 +1,6 @@
 package ru.yandex.praktikum.scooter;
 
+import io.qameta.allure.Description;
 import io.qameta.allure.junit4.DisplayName;
 import org.junit.After;
 import org.junit.Test;
@@ -45,6 +46,7 @@ public class OrderCreateTest extends BaseTest {
 
     @Test
     @DisplayName("Создание заказа с разными вариантами цвета")
+    @Description("Проверяем, что заказ успешно создаётся для разных комбинаций параметра color и в ответе возвращается track")
     public void orderCanBeCreatedWithDifferentColors() {
 
         Order order = new Order(

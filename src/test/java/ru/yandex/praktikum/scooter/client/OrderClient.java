@@ -27,4 +27,13 @@ public class OrderClient {
                 .get(ORDERS_PATH)
                 .then();
     }
+
+    @Step("Отменить заказ")
+    public ValidatableResponse cancel(int trackId) {
+        return given()
+                .queryParam("track", trackId)
+                .when()
+                .put(ORDERS_PATH + "/cancel")
+                .then();
+    }
 }

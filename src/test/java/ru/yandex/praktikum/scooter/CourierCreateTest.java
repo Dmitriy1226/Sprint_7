@@ -17,12 +17,14 @@ public class CourierCreateTest extends BaseTest {
 
     private final CourierClient courierClient = new CourierClient();
     private final Faker faker = new Faker();
-    private Integer courierId; // сюда будем сохранять id для удаления
+
+    // сюда будем сохранять логин/пароль курьера, которого нужно удалить после теста
+    private CourierCredentials courierCredentialsForCleanup;
 
     // Вспомогательный метод: создаёт курьера с рандомными данными
     private Courier getRandomCourier() {
         return new Courier(
-                faker.name().username(),          // было faker.internet().username()
+                faker.name().username(),
                 faker.internet().password(),
                 faker.name().firstName()
         );
@@ -30,11 +32,23 @@ public class CourierCreateTest extends BaseTest {
 
     @After
     public void tearDown() {
-        // Если в тесте мы получили id — удаляем курьера после теста
-        if (courierId != null) {
+        // Если в тесте мы создали курьера и сохранили его креды — удаляем его
+        if (courierCredentialsForCleanup != null) {
+            // логинимся и достаём id
+            ValidatableResponse loginResponse = courierClient.login(courierCredentialsForCleanup);
+
+            Integer courierId = loginResponse
+                    .statusCode(SC_OK)
+                    .extract()
+                    .path("id");
+
+            // удаляем курьера
             courierClient.delete(courierId)
                     .statusCode(SC_OK)
                     .body("ok", equalTo(true));
+
+            // чтобы не удалить повторно в следующем тесте
+            courierCredentialsForCleanup = null;
         }
     }
 
@@ -45,20 +59,15 @@ public class CourierCreateTest extends BaseTest {
         Courier courier = getRandomCourier();
 
         // создаём курьера
-        ValidatableResponse createResponse = courierClient.create(courier);
-        createResponse
+        courierClient.create(courier)
                 .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
-        // авторизуемся и достаём id для последующего удаления
-        ValidatableResponse loginResponse = courierClient.login(
-                new CourierCredentials(courier.getLogin(), courier.getPassword())
+        // сохраняем креды для последующего удаления в @After
+        courierCredentialsForCleanup = new CourierCredentials(
+                courier.getLogin(),
+                courier.getPassword()
         );
-
-        courierId = loginResponse
-                .statusCode(SC_OK)
-                .extract()
-                .path("id");
     }
 
     @Test
@@ -72,13 +81,11 @@ public class CourierCreateTest extends BaseTest {
                 .statusCode(SC_CREATED)
                 .body("ok", equalTo(true));
 
-        // логин, чтобы получить id для удаления
-        courierId = courierClient.login(
-                        new CourierCredentials(courier.getLogin(), courier.getPassword())
-                )
-                .statusCode(SC_OK)
-                .extract()
-                .path("id");
+        // сохраняем креды для удаления курьера в @After
+        courierCredentialsForCleanup = new CourierCredentials(
+                courier.getLogin(),
+                courier.getPassword()
+        );
 
         // второй запрос с тем же логином — ошибка
         courierClient.create(courier)
@@ -108,7 +115,7 @@ public class CourierCreateTest extends BaseTest {
     @Description("Создание курьера без пароля должно возвращать ошибку 400")
     public void cannotCreateCourierWithoutPassword() {
         Courier courier = new Courier(
-                faker.name().username(),          // было faker.internet().username()
+                faker.name().username(),
                 null,
                 faker.name().firstName()
         );
